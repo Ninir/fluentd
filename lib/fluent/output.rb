@@ -404,7 +404,10 @@ module Fluent
       @num_errors_lock.synchronize do
         @next_retry_time = Time.now.to_f - 1
       end
-      enqueue_buffer(true)
+      # force_flush is called from main worker's thread, so buffer operations should be protected
+      @buffer.synchronize {
+        enqueue_buffer(true)
+      }
       submit_flush
     end
 
